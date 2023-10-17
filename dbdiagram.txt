@@ -1,0 +1,57 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+Table prices{
+  id integer [primary key]
+  date_id integer
+  equity_id integer
+  open_px decimal(22,8)
+  high_px decimal(22,8)
+  low_px decimal(22,8)
+  close_px decimal(22,8)
+  adj_close_px decimal(22,8)
+  volume decimal(22,4)
+}
+
+Table equity{
+  id integer [primary key]
+  currency_id integer
+  equity varchar
+  country varchar
+  sector varchar
+}
+
+
+table currency{
+  id integer [primary key]
+  currency varchar
+  currency_feeder varchar
+}
+
+Table prices_currency{
+  id integer [primary key]
+  date_id integer
+  currency_id integer
+  open_px decimal(22,8)
+  high_px decimal(22,8)
+  low_px decimal(22,8)
+  close_px decimal(22,8)
+  adj_close_px decimal(22,8)
+}
+
+Table dates{
+  id integer [primary key]
+  dt_pos datetime
+}
+
+
+
+Ref: "equity"."id" < "prices"."equity_id"
+
+Ref: "currency"."id" < "equity"."currency_id"
+
+Ref: "currency"."id" < "prices_currency"."currency_id"
+
+Ref: "dates"."id" < "prices_currency"."date_id"
+
+Ref: "dates"."id" < "prices"."date_id"
