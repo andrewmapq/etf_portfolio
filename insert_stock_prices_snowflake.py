@@ -21,13 +21,13 @@ def change_tickers(df_stocks):
     logging.info(df_stocks)
     return df_stocks
 
-def get_engine_db():
-    snowflake_username = 'andrewmapq'
-    snowflake_password = 'Thom@sS@nkara29'
-    snowflake_account = 'cpqcihe-to04558'
-    snowflake_database = 'ETF_CONSTITUENT_DATA'
-    snowflake_schema = 'public'
-    snowflake_warehouse = 'compute_wh'
+def get_engine_db(user, pwd, acc, db, schema, wh):
+    snowflake_username = user
+    snowflake_password = pwd
+    snowflake_account = acc
+    snowflake_database = db
+    snowflake_schema = schema
+    snowflake_warehouse = wh
 
     snowflake_password_encoded = quote(snowflake_password)
 
@@ -45,11 +45,12 @@ def get_engine_db():
 
 def main():
     # Get connection string
-    engine = get_engine_db()
+    engine_constituent = get_engine_db('andrewmapq', 'Thom@sS@nkara29','cpqcihe-to04558','ETF_CONSTITUENT_DATA','public','compute_wh')
 
     query = "select CONSTITUENT_TICKER from CONSTITUENTS where composite_ticker = 'QQQ' and etfg_date = '2021-11-1' order by WEIGHT desc;"
-    stocks = pd.read_sql_query(query, con=engine)
+    stocks = pd.read_sql_query(query, con=engine_constituent)
     logging.info(stocks)
+    engine_constituent.dispose()
     stocks = change_tickers(stocks)
 
     # Create an empty list to store DataFrames
@@ -65,12 +66,14 @@ def main():
 
     # Concatenate all DataFrames into a single DataFrame
     merged_df = pd.concat(dfs)
-
-    # Reset the index of the merged DataFrame
     merged_df.reset_index(inplace=True)
 
+    engine_etf = get_engine_db('andrewmapq', 'Thom@sS@nkara29','cpqcihe-to04558','ETF_PORTFOLIO','feeder','compute_wh')
+    table_name = "stock_prices"
+
     # Display the merged DataFrame
-    print(merged_df)
+    merged_df.to_sql(table_name, con=engine_etf, if_exists='replace', index=False)
+    engine_etf.dispose()
 
 
 if __name__ == "__main__":
